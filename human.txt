@@ -1,0 +1,74 @@
+Urutannya yang lebih logis:
+
+Scaffolding — project bisa bun dev tanpa error, routing 3 halaman ada, env terkonfigurasi
+Form Page — input brief bisa dikirim
+Route Handler + Gemini — AI interpretation berjalan
+Baru di sini: pipeline rules diimplementasikan — sebagai bagian dari prompt engineering ke Gemini dan parameter ke Fal.ai
+Fal.ai image generation — output gambar keluar
+Result Page — output ditampilkan
+
+------------------------------------------
+
+buat issue.md berisi planning untuk membuat ini:
+
+## Context
+Standalone prototype untuk menguji pipeline komposisi desain visual AI secara 
+terisolasi. Terpisah dari platform utama karena ada legacy code yang berpotensi 
+tumpang tindih. Frontend tidak diprioritaskan — fokus utama adalah memvalidasi 
+pipeline AI berjalan benar dari input sampai output.
+
+## Goal
+Membangun environment testing untuk pipeline: Form → AI Interpretation → 
+Image Generation → Result.
+
+## Stack
+- Runtime: Bun
+- Framework: Next.js (App Router) + TypeScript
+- Styling: Tailwind CSS (minimal, fungsional saja)
+- UI Components: shadcn/ui (basic)
+- State: Zustand
+- Canvas/render output: Konva.js
+- AI: Gemini Flash (text/interpretation), Fal.ai Flux (image generation)
+- API: Next.js Route Handlers (tidak ada backend terpisah)
+
+## Scope
+- [ ] Init project Next.js + Bun
+- [ ] Folder structure dasar
+- [ ] .env.example (Gemini API key, Fal.ai API key)
+- [ ] Routing: /form → /confirmation → /result
+- [ ] README dengan instruksi local run
+
+## Explicitly out of scope
+- Auth
+- Database / persistensi data
+- Queue (Celery/Redis)
+- Backend terpisah (FastAPI)
+- Storage (Backblaze)
+- Docker / deployment
+- UI yang rapi
+
+catatan:
+jangan terlalu low level atau detail
+cukup instruksikan secara high level
+document planning ini akan digunakan untuk junior programmer dan atau model AI yang lebih rendah untuk diimplementasikan
+
+------------------------------------------
+
+⇈ ⇈ ⇈ ⇈ ⇈ ⇈ ⇈ ⇈
+Yang perlu diganti atau ditambah saat scale ke produk
+- Route Handlers → Backend terpisah
+Route Handlers cocok untuk prototype, tapi untuk produk nyata ada masalah: tidak ada queue, tidak ada long-running process, dan timeout limit dari Next.js sendiri. Image generation dari Fal.ai bisa memakan waktu lama — di produk ini harus pakai queue (Redis + Celery atau BullMQ).
+- Tidak ada persistensi data
+Prototype ini stateless — user refresh, data hilang. Produk nyata butuh database untuk menyimpan history desain, output, dan preferensi user.
+- Tidak ada auth
+Produk publik butuh auth. NextAuth yang sudah dipakai di platform lama bisa diadaptasi kembali.
+- Konva.js — perlu divalidasi lebih dalam
+Konva cocok untuk rendering canvas interaktif, tapi untuk output desain berkualitas cetak (CMYK, resolusi tinggi) perlu dievaluasi apakah Konva cukup atau perlu diganti/ditambah tool lain.
+
+Kesimpulan
+Prototype ini scalable secara frontend dan AI integration — dua layer itu tidak perlu dibuang saat naik ke produk. Yang perlu ditambahkan adalah lapisan infrastruktur: database, auth, queue, dan storage — yang memang sudah di-scope out secara sadar.
+Artinya keputusan arsitektur di issue.md ini tidak menciptakan technical debt yang serius, selama kode pipeline-nya ditulis modular — API calls ke Gemini dan Fal.ai sebaiknya diisolasi di /lib, bukan tersebar di komponen. Ini yang perlu diperhatikan saat implementasi.
+
+------------------------------------------
+
+
